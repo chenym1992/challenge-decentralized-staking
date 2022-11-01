@@ -145,4 +145,6 @@ contract Staker {
     receive() external payable {
         emit Received(msg.sender, msg.value);
     }
+
+    fallback() external payable {}
 }

@@ -23,6 +23,8 @@ function Home({ provider, address, gasPrice, readContracts, writeContracts }) {
   const stakerContractBalance = useBalance(provider, readContracts?.Staker?.address);
 
   const balanceStaked = useContractReader(readContracts, "Staker", "balances", [address]);
+  console.log("address: ", address);
+  console.log("balanceStaked: ", balanceStaked);
   const tx = Transactor(provider, gasPrice);
 
   return (
