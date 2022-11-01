@@ -167,18 +167,6 @@ function App(props) {
   //   console.log(`⛓ A new mainnet block is here: ${mainnetProvider._lastBlockNumber}`);
   // });
 
-  // Then read your DAI balance like:
-  const myMainnetDAIBalance = useContractReader(
-    mainnetContracts,
-    "DAI",
-    "balanceOf",
-    ["0x34aA3F359A9D614239015126635CE7732c18fDF3"],
-    mainnetProviderPollingTime,
-  );
-
-  // keep track of a variable from the contract in the local React state:
-  const purpose = useContractReader(readContracts, "YourContract", "purpose", [], localProviderPollingTime);
-
   /*
   const addressFromENS = useResolveName(mainnetProvider, "austingriffith.eth");
   console.log("🏷 Resolved austingriffith.eth as:", addressFromENS)
@@ -208,7 +196,6 @@ function App(props) {
       console.log("💵 yourMainnetBalance", yourMainnetBalance ? ethers.utils.formatEther(yourMainnetBalance) : "...");
       console.log("📝 readContracts", readContracts);
       console.log("🌍 DAI contract on mainnet:", mainnetContracts);
-      console.log("💵 yourMainnetDAIBalance", myMainnetDAIBalance);
       console.log("🔐 writeContracts", writeContracts);
     }
   }, [
@@ -221,7 +208,6 @@ function App(props) {
     writeContracts,
     mainnetContracts,
     localChainId,
-    myMainnetDAIBalance,
   ]);
 
   const loadWeb3Modal = useCallback(async () => {
@@ -285,25 +271,25 @@ function App(props) {
           </div>
         </div>
       </Header>
-      {yourLocalBalance.lte(ethers.BigNumber.from("0")) && (
+      {/* {yourLocalBalance.lte(ethers.BigNumber.from("0")) && (
         <FaucetHint localProvider={localProvider} targetNetwork={targetNetwork} address={address} />
-      )}
-      <NetworkDisplay
+      )} */}
+      {/* <NetworkDisplay
         NETWORKCHECK={NETWORKCHECK}
         localChainId={localChainId}
         selectedChainId={selectedChainId}
         targetNetwork={targetNetwork}
         logoutOfWeb3Modal={logoutOfWeb3Modal}
         USE_NETWORK_SELECTOR={USE_NETWORK_SELECTOR}
-      />
+      /> */}
       <Menu style={{ textAlign: "center", marginTop: 20 }} selectedKeys={[location.pathname]} mode="horizontal">
         <Menu.Item key="/">
-          <Link to="/">App Home</Link>
+          <Link to="/">Staker UI</Link>
         </Menu.Item>
         <Menu.Item key="/debug">
           <Link to="/debug">Debug Contracts</Link>
         </Menu.Item>
-        <Menu.Item key="/hints">
+        {/* <Menu.Item key="/hints">
           <Link to="/hints">Hints</Link>
         </Menu.Item>
         <Menu.Item key="/exampleui">
@@ -314,13 +300,21 @@ function App(props) {
         </Menu.Item>
         <Menu.Item key="/subgraph">
           <Link to="/subgraph">Subgraph</Link>
-        </Menu.Item>
+        </Menu.Item> */}
       </Menu>
 
       <Switch>
         <Route exact path="/">
           {/* pass in any web3 props to this Home component. For example, yourLocalBalance */}
-          <Home yourLocalBalance={yourLocalBalance} readContracts={readContracts} />
+          <Home
+            address={address}
+            gasPrice={gasPrice}
+            signer={userSigner}
+            provider={localProvider}
+            yourLocalBalance={yourLocalBalance}
+            writeContracts={writeContracts}
+            readContracts={readContracts}
+          />
         </Route>
         <Route exact path="/debug">
           {/*
@@ -330,7 +324,7 @@ function App(props) {
             */}
 
           <Contract
-            name="YourContract"
+            name="Staker"
             price={price}
             signer={userSigner}
             provider={localProvider}
@@ -339,7 +333,7 @@ function App(props) {
             contractConfig={contractConfig}
           />
         </Route>
-        <Route path="/hints">
+        {/* <Route path="/hints">
           <Hints
             address={address}
             yourLocalBalance={yourLocalBalance}
@@ -372,7 +366,7 @@ function App(props) {
             contractConfig={contractConfig}
             chainId={1}
           />
-          {/*
+          
             <Contract
               name="UNI"
               customContract={mainnetContracts && mainnetContracts.contracts && mainnetContracts.contracts.UNI}
@@ -381,7 +375,7 @@ function App(props) {
               address={address}
               blockExplorer="https://etherscan.io/"
             />
-            */}
+           
         </Route>
         <Route path="/subgraph">
           <Subgraph
@@ -390,7 +384,7 @@ function App(props) {
             writeContracts={writeContracts}
             mainnetProvider={mainnetProvider}
           />
-        </Route>
+        </Route> */}
       </Switch>
 
       <ThemeSwitch />

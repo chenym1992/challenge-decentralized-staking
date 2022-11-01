@@ -1,123 +1,118 @@
-import { useContractReader } from "eth-hooks";
+import { Button, Divider, List } from "antd";
+import { useBalance, useContractReader } from "eth-hooks";
 import { ethers } from "ethers";
 import React from "react";
-import { Link } from "react-router-dom";
-
+import { Address, Balance } from "../components";
+import humanizeDuration from "humanize-duration";
+import { Transactor } from "../helpers";
 /**
  * web3 props can be passed from '../App.jsx' into your local view component for use
  * @param {*} yourLocalBalance balance on current network
  * @param {*} readContracts contracts from current chain already pre-loaded using ethers contract module. More here https://docs.ethers.io/v5/api/contract/contract/
  * @returns react component
  **/
-function Home({ yourLocalBalance, readContracts }) {
-  // you can also use hooks locally in your component of choice
-  // in this case, let's keep track of 'purpose' variable from our contract
-  const purpose = useContractReader(readContracts, "YourContract", "purpose");
+function Home({ provider, address, gasPrice, readContracts, writeContracts }) {
+  const rewardRatePerSecond = useContractReader(readContracts, "Staker", "rewardRatePerSecond");
+  // ** keep track of a variable from the contract in the local React state:
+  const claimPeriodLeft = useContractReader(readContracts, "Staker", "claimPeriodLeft");
+  console.log("⏳ Claim Period Left:", claimPeriodLeft);
+
+  const withdrawalTimeLeft = useContractReader(readContracts, "Staker", "withdrawalTimeLeft");
+  console.log("⏳ Withdrawal Time Left:", withdrawalTimeLeft);
+
+  const stakerContractBalance = useBalance(provider, readContracts?.Staker?.address);
+
+  const balanceStaked = useContractReader(readContracts, "Staker", "balances", [address]);
+  const tx = Transactor(provider, gasPrice);
 
   return (
-    <div>
-      <div style={{ margin: 32 }}>
-        <span style={{ marginRight: 8 }}>📝</span>
-        This Is Your App Home. You can start editing it in{" "}
-        <span
-          className="highlight"
-          style={{ marginLeft: 4, /* backgroundColor: "#f9f9f9", */ padding: 4, borderRadius: 4, fontWeight: "bolder" }}
-        >
-          packages/react-app/src/views/Home.jsx
-        </span>
+    <>
+      <div style={{ padding: 8, marginTop: 32 }}>
+        <div>Staker Contract:</div>
+        <Address value={readContracts && readContracts.Staker && readContracts.Staker.address} />
       </div>
-      <div style={{ margin: 32 }}>
-        <span style={{ marginRight: 8 }}>✏️</span>
-        Edit your smart contract{" "}
-        <span
-          className="highlight"
-          style={{ marginLeft: 4, /* backgroundColor: "#f9f9f9", */ padding: 4, borderRadius: 4, fontWeight: "bolder" }}
-        >
-          YourContract.sol
-        </span>{" "}
-        in{" "}
-        <span
-          className="highlight"
-          style={{ marginLeft: 4, /* backgroundColor: "#f9f9f9", */ padding: 4, borderRadius: 4, fontWeight: "bolder" }}
-        >
-          packages/hardhat/contracts
-        </span>
+      <Divider />
+      <div style={{ padding: 8, marginTop: 16 }}>
+        <div>Reward Rate Per Second:</div>
+        <Balance balance={rewardRatePerSecond} fontSize={64} /> ETH
       </div>
-      {!purpose ? (
-        <div style={{ margin: 32 }}>
-          <span style={{ marginRight: 8 }}>👷‍♀️</span>
-          You haven't deployed your contract yet, run
-          <span
-            className="highlight"
-            style={{
-              marginLeft: 4,
-              /* backgroundColor: "#f9f9f9", */ padding: 4,
-              borderRadius: 4,
-              fontWeight: "bolder",
-            }}
-          >
-            yarn chain
-          </span>{" "}
-          and{" "}
-          <span
-            className="highlight"
-            style={{
-              marginLeft: 4,
-              /* backgroundColor: "#f9f9f9", */ padding: 4,
-              borderRadius: 4,
-              fontWeight: "bolder",
-            }}
-          >
-            yarn deploy
-          </span>{" "}
-          to deploy your first contract!
-        </div>
-      ) : (
-        <div style={{ margin: 32 }}>
-          <span style={{ marginRight: 8 }}>🤓</span>
-          The "purpose" variable from your contract is{" "}
-          <span
-            className="highlight"
-            style={{
-              marginLeft: 4,
-              /* backgroundColor: "#f9f9f9", */ padding: 4,
-              borderRadius: 4,
-              fontWeight: "bolder",
-            }}
-          >
-            {purpose}
-          </span>
-        </div>
-      )}
+      <Divider />
+      <div style={{ padding: 8, marginTop: 16, fontWeight: "bold" }}>
+        <div>Claim Period Left:</div>
+        {claimPeriodLeft && humanizeDuration(claimPeriodLeft.toNumber() * 1000)}
+      </div>
+      <Divider />
+      <div style={{ padding: 8, marginTop: 16, fontWeight: "bold" }}>
+        <div>Withdrawal Period Left:</div>
+        {withdrawalTimeLeft && humanizeDuration(withdrawalTimeLeft.toNumber() * 1000)}
+      </div>
 
-      <div style={{ margin: 32 }}>
-        <span style={{ marginRight: 8 }}>🤖</span>
-        An example prop of your balance{" "}
-        <span style={{ fontWeight: "bold", color: "green" }}>({ethers.utils.formatEther(yourLocalBalance)})</span> was
-        passed into the
-        <span
-          className="highlight"
-          style={{ marginLeft: 4, /* backgroundColor: "#f9f9f9", */ padding: 4, borderRadius: 4, fontWeight: "bolder" }}
+      <div style={{ padding: 8, fontWeight: "bold" }}>
+        <div>Total Available ETH in Contract:</div>
+        <Balance balance={stakerContractBalance} fontSize={64} />
+      </div>
+
+      <Divider />
+
+      <div style={{ padding: 8, fontWeight: "bold" }}>
+        <div>ETH Locked 🔒 in Staker Contract:</div>
+        <Balance balance={balanceStaked} fontSize={64} />
+      </div>
+
+      <div style={{ padding: 8 }}>
+        <Button
+          type={"default"}
+          onClick={() => {
+            tx(writeContracts.Staker.execute());
+          }}
         >
-          Home.jsx
-        </span>{" "}
-        component from
-        <span
-          className="highlight"
-          style={{ marginLeft: 4, /* backgroundColor: "#f9f9f9", */ padding: 4, borderRadius: 4, fontWeight: "bolder" }}
+          📡 Execute!
+        </Button>
+      </div>
+
+      <div style={{ padding: 8 }}>
+        <Button
+          type={"default"}
+          onClick={() => {
+            tx(writeContracts.Staker.withdraw());
+          }}
         >
-          App.jsx
-        </span>
+          🏧 Withdraw
+        </Button>
       </div>
-      <div style={{ margin: 32 }}>
-        <span style={{ marginRight: 8 }}>💭</span>
-        Check out the <Link to="/hints">"Hints"</Link> tab for more tips.
+
+      <div style={{ padding: 8 }}>
+        <Button
+          type={balanceStaked ? "success" : "primary"}
+          onClick={() => {
+            tx(writeContracts.Staker.stake({ value: ethers.utils.parseEther("0.5") }));
+          }}
+        >
+          🥩 Stake 0.5 ether!
+        </Button>
       </div>
-      <div style={{ margin: 32 }}>
-        <span style={{ marginRight: 8 }}>🛠</span>
-        Tinker with your smart contract using the <Link to="/debug">"Debug Contract"</Link> tab.
-      </div>
-    </div>
+
+      {/*
+                🎛 this scaffolding is full of commonly used components
+                this <Contract/> component will automatically parse your ABI
+                and give you a form to interact with it locally
+            */}
+
+      {/* <div style={{ width: 500, margin: "auto", marginTop: 64 }}>
+        <div>Stake Events:</div>
+        <List
+          dataSource={stakeEvents}
+          renderItem={item => {
+            return (
+              <List.Item key={item.blockNumber}>
+                <Address value={item.args[0]} ensProvider={mainnetProvider} fontSize={16} /> {"=>"}
+                <Balance balance={item.args[1]} />
+              </List.Item>
+            );
+          }}
+        />
+      </div> */}
+    </>
   );
 }
 
